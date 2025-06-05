@@ -4,10 +4,16 @@ project(thingsmqtt VERSION 1.0.0
                        DESCRIPTION "Lua library for interacting with Thingsboard over MQTT"
 					   LANGUAGES CXX)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+option(THINGSMQTT_THREADED "Enable threaded MQTT client" ON)
+
 if(CMAKE_BUILD_TYPE STREQUAL Release)
-	set(THINGS_MQTT_STACK_CHECK OFF)
+	set(THINGSMQTT_STACK_CHECK OFF)
 else()
-	set(THINGS_MQTT_STACK_CHECK ON)
+	set(THINGSMQTT_STACK_CHECK ON)
 endif()
 
 # Only do these if this is the main project
@@ -25,17 +31,29 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	endif()
 endif()
 
-find_package (Lua 5.1 REQUIRED)
+find_package(Lua 5.1 REQUIRED)
+find_package(CJSON REQUIRED)
 
 set(INCLUDES
 	inc/lua-thingsmqtt.h
 	src/lua-thingsmqtt-private.hpp
-	src/mqtt-client.hpp
+	src/threadsafe-queue.hpp
+	src/telemetry-cache.hpp
+	src/controller.hpp
+	src/mqtt/mqtt-client.hpp
+	src/mqtt/mqtt-client-singlethread.hpp
+	src/mqtt/mqtt-client-threadsafe.hpp
+	src/json-utils.hpp
 )
 
 set(SOURCES
 	src/lua-thingsmqtt.cpp
-	src/mqtt-client.cpp
+	src/telemetry-cache.cpp
+	src/controller.cpp
+	src/mqtt/mqtt-client.cpp
+	src/mqtt/mqtt-client-singlethread.cpp
+	src/mqtt/mqtt-client-threadsafe.cpp
+	src/json-utils.cpp
 )
 
 configure_file(
@@ -71,15 +89,19 @@ endif()
 target_include_directories(thingsmqtt PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/inc>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 	$<INSTALL_INTERFACE:include>
 
 	${LUA_INCLUDE_DIR}
+	${CJSON_INCLUDE_DIR}
 )
 
 target_link_libraries(thingsmqtt PRIVATE
 	${LUA_LIBRARIES}
+	${CJSON_LIBRARY}
 )
 
-# if ((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
-# 	add_subdirectory(tests)
-# endif()
+if ((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
+	enable_testing()
+	add_subdirectory(tests)
+endif()

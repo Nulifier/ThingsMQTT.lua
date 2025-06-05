@@ -20,6 +20,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         lua5.1 \
         doxygen \
         libmosquitto-dev \
+        libcjson-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set LUA_CPATH for local testing
