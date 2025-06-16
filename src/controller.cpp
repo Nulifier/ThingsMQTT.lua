@@ -2,6 +2,7 @@
 #include <ctime>
 #include <sstream>
 #include <stdexcept>
+#include "thingsmqtt-config.hpp"
 
 void Controller::connect(const ControllerConfig& config) {
 	ControllerConfig cfg = config;	// Make a copy to modify
@@ -30,18 +31,51 @@ void Controller::disconnect() {
 	m_mqtt_client.disconnect();
 }
 
-void Controller::publishTelemetry(std::string_view json) {
-	if (!m_mqtt_client.is_connected()) {
-		throw std::runtime_error("MQTT client is not connected");
+void Controller::publishTelemetry(const char* key, nlohmann::json&& value) {
+	// Check if the old value is different
+	auto it = m_telemetry_data.find(key);
+	if (it == m_telemetry_data.end()) {
+		// New telemetry key
+		m_telemetry_data.emplace(key, std::move(value));
+		m_tainted_telemetry_keys.insert(key);
+	} else if (it->second != value) {
+		// Existing telemetry key with a new value
+		it->second = std::move(value);
+		m_tainted_telemetry_keys.insert(key);
+	} else {
+		// No change in telemetry value
+	}
+}
+
+bool Controller::send() {
+	if (m_tainted_telemetry_keys.empty()) {
+		return false;
 	}
 
-	// Build the payload with timestamp
-	std::ostringstream payload;
-	payload << "{\"ts\":" << std::time(nullptr) * 1000 << ",\"values\":" << json
-			<< "}";
-
-	if (!m_mqtt_client.publish("v1/devices/me/telemetry", payload.str(),
-							   MqttQos::AtLeastOnce, false)) {
-		// Client is disconnected, no way to handle currently
+	// Create a JSON object for the telemetry values
+	nlohmann::json telemetry_values;
+	for (const auto& key : m_tainted_telemetry_keys) {
+		telemetry_values[key] = m_telemetry_data[key];
 	}
+
+	// Create the JSON payload
+	nlohmann::json payload;
+	payload["values"] = telemetry_values;
+	payload["ts"] = std::time(nullptr) * 1000;
+
+	// Publish the telemetry data
+	sendTelemetry(std::move(payload));
+
+	// Clear the tainted keys
+	m_tainted_telemetry_keys.clear();
+
+	return true;
+}
+
+void Controller::loop() {
+	m_mqtt_client.loop();
+}
+
+void Controller::sendTelemetry(nlohmann::json&& payload) {
+	m_mqtt_client.publish(THINGSMQTT_TELEMETRY_TOPIC, payload.dump());
 }
