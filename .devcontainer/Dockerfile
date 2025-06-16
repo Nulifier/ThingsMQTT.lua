@@ -24,4 +24,4 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && rm -rf /var/lib/apt/lists/*
 
 # Set LUA_CPATH for local testing
-ENV LUA_CPATH="./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so;/workspaces/rhythm/build/?.so"
+ENV LUA_CPATH="./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so;/workspaces/ThingsMQTT.lua/build/?.so"

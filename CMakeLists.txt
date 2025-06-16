@@ -4,11 +4,12 @@ project(thingsmqtt VERSION 1.0.0
                        DESCRIPTION "Lua library for interacting with Thingsboard over MQTT"
 					   LANGUAGES CXX)
 
+set(THINGSMQTT_TELEMETRY_TOPIC "v1/devices/me/telemetry" CACHE STRING "Topic to publish telemetry to")
+option(THINGSMQTT_THREADED "Enable threaded MQTT client" ON)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-option(THINGSMQTT_THREADED "Enable threaded MQTT client" ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL Release)
 	set(THINGSMQTT_STACK_CHECK OFF)
@@ -33,6 +34,7 @@ endif()
 
 find_package(Lua 5.1 REQUIRED)
 find_package(CJSON REQUIRED)
+find_package(libmosquitto REQUIRED)
 
 set(INCLUDES
 	inc/lua-thingsmqtt.h
@@ -102,6 +104,7 @@ target_include_directories(thingsmqtt PRIVATE
 target_link_libraries(thingsmqtt PRIVATE
 	${LUA_LIBRARIES}
 	${CJSON_LIBRARY}
+	libmosquitto
 )
 
 if ((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
