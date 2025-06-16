@@ -37,6 +37,8 @@ find_package(CJSON REQUIRED)
 set(INCLUDES
 	inc/lua-thingsmqtt.h
 	src/lua-thingsmqtt-private.hpp
+	src/lua-utils.hpp
+	src/nlohmann/json.hpp
 	src/threadsafe-queue.hpp
 	src/telemetry-cache.hpp
 	src/controller.hpp
@@ -48,6 +50,7 @@ set(INCLUDES
 
 set(SOURCES
 	src/lua-thingsmqtt.cpp
+	src/lua-utils.cpp
 	src/telemetry-cache.cpp
 	src/controller.cpp
 	src/mqtt/mqtt-client.cpp
