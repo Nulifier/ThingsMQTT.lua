@@ -8,6 +8,10 @@ MqttClientSingleThread::~MqttClientSingleThread() {
 }
 
 void MqttClientSingleThread::loop() {
+	if (m_mosq == nullptr) {
+		throw std::runtime_error("MQTT client is not initialized");
+	}
+
 	int rc = mosquitto_loop(m_mosq, -1, 1);
 	if (rc == MOSQ_ERR_CONN_LOST || rc == MOSQ_ERR_NO_CONN) {
 		m_connected = false;

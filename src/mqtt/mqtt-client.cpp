@@ -44,9 +44,10 @@ void MqttClient::configure(const char* client_id,
 
 	// Configure SSL/TLS if provided
 	if (ssl_config != nullptr) {
-		if (mosquitto_tls_set(m_mosq, ssl_config->ca_file, nullptr,
-							  ssl_config->cert_file, ssl_config->key_file,
-							  nullptr) != MOSQ_ERR_SUCCESS) {
+		int rc = mosquitto_tls_set(m_mosq, ssl_config->ca_file, nullptr,
+								   ssl_config->cert_file, ssl_config->key_file,
+								   nullptr);
+		if (rc != MOSQ_ERR_SUCCESS) {
 			mosquitto_destroy(m_mosq);
 			m_mosq = nullptr;
 			throw std::runtime_error("Failed to set TLS configuration");
