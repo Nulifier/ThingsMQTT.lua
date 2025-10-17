@@ -33,7 +33,6 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
 
 find_package(Lua 5.1 REQUIRED)
-find_package(CJSON REQUIRED)
 find_package(libmosquitto REQUIRED)
 
 set(INCLUDES
@@ -42,23 +41,21 @@ set(INCLUDES
 	src/lua-utils.hpp
 	src/nlohmann/json.hpp
 	src/threadsafe-queue.hpp
-	src/telemetry-cache.hpp
+	#src/telemetry-cache.hpp
 	src/controller.hpp
 	src/mqtt/mqtt-client.hpp
 	src/mqtt/mqtt-client-singlethread.hpp
 	src/mqtt/mqtt-client-threadsafe.hpp
-	src/json-utils.hpp
 )
 
 set(SOURCES
 	src/lua-thingsmqtt.cpp
 	src/lua-utils.cpp
-	src/telemetry-cache.cpp
+	#src/telemetry-cache.cpp
 	src/controller.cpp
 	src/mqtt/mqtt-client.cpp
 	src/mqtt/mqtt-client-singlethread.cpp
 	src/mqtt/mqtt-client-threadsafe.cpp
-	src/json-utils.cpp
 )
 
 configure_file(
@@ -98,16 +95,20 @@ target_include_directories(thingsmqtt PRIVATE
 	$<INSTALL_INTERFACE:include>
 
 	${LUA_INCLUDE_DIR}
-	${CJSON_INCLUDE_DIR}
 )
 
 target_link_libraries(thingsmqtt PRIVATE
 	${LUA_LIBRARIES}
-	${CJSON_LIBRARY}
 	libmosquitto
 )
 
-if ((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
-	enable_testing()
-	add_subdirectory(tests)
-endif()
+install(TARGETS thingsmqtt
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib/static
+)
+
+# if ((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
+# 	enable_testing()
+# 	add_subdirectory(tests)
+# endif()

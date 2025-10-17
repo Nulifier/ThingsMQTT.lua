@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lua.h>
+#include <lua.hpp>
 #include "thingsmqtt-config.hpp"
 
 static int lua_thingsmqtt_new(lua_State* L);

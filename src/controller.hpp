@@ -7,8 +7,6 @@
 #include <unordered_set>
 #include "mqtt/mqtt-client-singlethread.hpp"
 
-struct CJSON;  // Forward declare cJSON
-
 struct ControllerConfig {
 	const char* host{nullptr};
 	int port{MQTT_DEFAULT_PORT};

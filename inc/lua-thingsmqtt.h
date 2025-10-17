@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lua.h>
+#include <lua.hpp>
 #include "lua-thingsmqtt-export.h"
 
 #ifdef __cplusplus
