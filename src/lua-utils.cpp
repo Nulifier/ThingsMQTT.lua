@@ -1,6 +1,6 @@
 #include "lua-utils.hpp"
 
-static nlohmann::json lua_value_to_json(lua_State* L, int index) {
+nlohmann::json lua_value_to_json(lua_State* L, int index) {
 	switch (lua_type(L, index)) {
 		case LUA_TNIL:
 			return nullptr;
@@ -25,7 +25,7 @@ static nlohmann::json lua_value_to_json(lua_State* L, int index) {
 	}
 }
 
-static void lua_json_to_value(lua_State* L, const nlohmann::json& json) {
+void lua_json_to_value(lua_State* L, const nlohmann::json& json) {
 	switch (json.type()) {
 		case nlohmann::json::value_t::null:
 			lua_pushnil(L);

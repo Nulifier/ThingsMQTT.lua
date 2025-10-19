@@ -10,6 +10,9 @@ static int lua_thingsmqtt_send(lua_State* L);
 static int lua_thingsmqtt_loop(lua_State* L);
 static int lua_thingsmqtt_is_connected(lua_State* L);
 
+static int lua_thingsmqtt_json_stringify(lua_State* L);
+static int lua_thingsmqtt_json_parse(lua_State* L);
+
 #ifdef THINGSMQTT_STACK_CHECK
 #define STACK_START(fn_name, nargs)                             \
 	int thingsmqtt_stack_top_##fn_name = lua_gettop(L) - nargs; \

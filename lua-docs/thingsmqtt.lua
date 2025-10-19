@@ -9,6 +9,16 @@ local ThingsMqtt = {}
 --- @return ThingsMqtt
 function ThingsMqtt.new() end
 
+--- Converts a Lua value to a JSON string.
+--- @param val any The Lua value to convert.
+--- @return string The JSON string representation of the Lua value.
+function ThingsMqtt.json_stringify(val) end
+
+--- Parses a JSON string into a Lua value.
+--- @param str string The JSON string to parse.
+--- @return any The Lua value represented by the JSON string.
+function ThingsMqtt.json_parse(str) end
+
 --- @param config ThingsMqttConfig
 function ThingsMqtt:connect(config) end
 

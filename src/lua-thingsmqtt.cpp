@@ -3,10 +3,14 @@
 #include "controller.hpp"
 #include "lauxlib.h"
 #include "lua-thingsmqtt-private.hpp"
+#include "lua-utils.hpp"
 
 static const char* thingsmqtt_meta = "ThingsMqtt";
 
-luaL_Reg library_methods[] = {{"new", lua_thingsmqtt_new}, {NULL, NULL}};
+luaL_Reg library_methods[] = {{"new", lua_thingsmqtt_new},
+							  {"json_stringify", lua_thingsmqtt_json_stringify},
+							  {"json_parse", lua_thingsmqtt_json_parse},
+							  {NULL, NULL}};
 luaL_Reg thingsmqtt_methods[] = {{"connect", lua_thingsmqtt_connect},
 								 {"telemetry", lua_thingsmqtt_telemetry},
 								 {"send", lua_thingsmqtt_send},
@@ -243,6 +247,40 @@ static int lua_thingsmqtt_is_connected(lua_State* L) {
 	lua_pushboolean(L, controller->isConnected());
 
 	STACK_END(lua_thingsmqtt_is_connected, 1);
+
+	return 1;
+}
+
+int lua_thingsmqtt_json_stringify(lua_State* L) {
+	STACK_START(lua_thingsmqtt_json_stringify, 1);
+
+	nlohmann::json json = lua_value_to_json(L, 1);
+	std::string json_str = json.dump();
+
+	lua_pop(L, 1);	// Pop input value
+	lua_pushstring(L, json_str.c_str());
+
+	STACK_END(lua_thingsmqtt_json_stringify, 1);
+
+	return 1;
+}
+
+int lua_thingsmqtt_json_parse(lua_State* L) {
+	STACK_START(lua_thingsmqtt_json_parse, 1);
+
+	const char* json_str = luaL_checkstring(L, 1);
+	nlohmann::json json = nlohmann::json::parse(json_str, nullptr, false);
+	if (json.is_discarded()) {
+		lua_pop(L, 1);	// Pop input string
+		lua_pushnil(L);
+		STACK_END(lua_thingsmqtt_json_parse, 1);
+		return 1;
+	}
+
+	lua_pop(L, 1);	// Pop input string
+	lua_json_to_value(L, json);
+
+	STACK_END(lua_thingsmqtt_json_parse, 1);
 
 	return 1;
 }

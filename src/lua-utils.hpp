@@ -8,7 +8,7 @@
  * @param L The Lua state.
  * @param index The index of the Lua value to convert.
  */
-static nlohmann::json lua_value_to_json(lua_State* L, int index);
+nlohmann::json lua_value_to_json(lua_State* L, int index);
 
 /**
  * Converts a JSON value to a Lua value.
@@ -16,4 +16,4 @@ static nlohmann::json lua_value_to_json(lua_State* L, int index);
  * @param L The Lua state.
  * @param json The JSON value to convert.
  */
-static void lua_json_to_value(lua_State* L, const nlohmann::json& json);
+void lua_json_to_value(lua_State* L, const nlohmann::json& json);
