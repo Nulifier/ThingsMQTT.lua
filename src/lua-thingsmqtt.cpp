@@ -140,67 +140,8 @@ int lua_thingsmqtt_telemetry(lua_State* L) {
 	const char* key = luaL_checkstring(L, 2);
 
 	// Get value
-	switch (lua_type(L, 3)) {
-		case LUA_TNIL: {
-			controller->publishTelemetry(key,
-										 std::move(nlohmann::json(nullptr)));
-			break;
-		}
-		case LUA_TNUMBER: {
-			double value = luaL_checknumber(L, 3);
-
-			// Check if value is an integer or a float
-			double int_part;
-			if (std::modf(value, &int_part) == 0.0) {
-				controller->publishTelemetry(
-					key,
-					std::move(nlohmann::json(static_cast<int64_t>(int_part))));
-			} else {
-				controller->publishTelemetry(key,
-											 std::move(nlohmann::json(value)));
-			}
-			break;
-		}
-		case LUA_TBOOLEAN: {
-			bool value = lua_toboolean(L, 3);
-			controller->publishTelemetry(key, std::move(nlohmann::json(value)));
-			break;
-		}
-		case LUA_TSTRING: {
-			const char* value = luaL_checkstring(L, 3);
-			controller->publishTelemetry(key, std::move(nlohmann::json(value)));
-			break;
-		}
-		case LUA_TTABLE: {
-			nlohmann::json table = nlohmann::json::object();
-			lua_pushnil(L);
-			while (lua_next(L, 3) != 0) {
-				const char* key = luaL_checkstring(L, -2);
-				switch (lua_type(L, -1)) {
-					case LUA_TNUMBER: {
-						double value = luaL_checknumber(L, -1);
-						table[key] = value;
-						break;
-					}
-					case LUA_TBOOLEAN: {
-						bool value = lua_toboolean(L, -1);
-						table[key] = value;
-						break;
-					}
-					case LUA_TSTRING: {
-						const char* value = luaL_checkstring(L, -1);
-						table[key] = value;
-						break;
-					}
-					default:
-						break;
-				}
-				lua_pop(L, 1);
-			}
-			controller->publishTelemetry(key, std::move(table));
-			break;
-		}
-	}
+	nlohmann::json value = lua_value_to_json(L, 3);
+	controller->publishTelemetry(key, std::move(value));
 
 	lua_pop(L, 3);
 

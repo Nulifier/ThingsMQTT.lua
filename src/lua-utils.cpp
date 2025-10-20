@@ -7,18 +7,49 @@ nlohmann::json lua_value_to_json(lua_State* L, int index) {
 		case LUA_TBOOLEAN:
 			return lua_toboolean(L, index);
 		case LUA_TNUMBER:
-			return lua_tonumber(L, index);
+			// Distinguish between integer and float
+			// Since this is Lua 5.1, we check if the number is an integer by checking if modf is 0
+			{
+				lua_Number num = lua_tonumber(L, index);
+				lua_Number intpart;
+				if (modf(num, &intpart) == 0.0) {
+					return static_cast<nlohmann::json::number_integer_t>(num);
+				} else {
+					return num;
+				}
+			}
 		case LUA_TSTRING:
 			return lua_tostring(L, index);
 		case LUA_TTABLE: {
-			nlohmann::json json = nlohmann::json::object();
-			lua_pushnil(L);
-			while (lua_next(L, index) != 0) {
-				// Key is at -2, value is at -1
-				json[lua_value_to_json(L, -2)] = lua_value_to_json(L, -1);
+			// The value can be a table representing either an array or an
+			// object. If index 1 exists, we treat it as an array; otherwise, as
+			// an object.
+
+			lua_pushinteger(L, 1);
+			lua_gettable(L, index);
+			if (lua_isnil(L, -1)) {
+				// It's an object
+				nlohmann::json obj = nlohmann::json::object();
+				lua_pop(L, 1);	 // Pop nil
+				lua_pushnil(L);	 // First key
+				while (lua_next(L, index) != 0) {
+					const char* key = luaL_checkstring(L, -2);
+					nlohmann::json value = lua_value_to_json(L, -1);
+					obj[key] = value;
+					lua_pop(L, 1);	// Pop value, keep key for next iteration
+				}
+				return obj;
+			} else {
+				// It's an array
 				lua_pop(L, 1);
+				nlohmann::json json = nlohmann::json::array();
+				lua_pushnil(L);
+				while (lua_next(L, index) != 0) {
+					json.push_back(lua_value_to_json(L, -1));
+					lua_pop(L, 1);
+				}
+				return json;
 			}
-			return json;
 		}
 		default:
 			return nullptr;
