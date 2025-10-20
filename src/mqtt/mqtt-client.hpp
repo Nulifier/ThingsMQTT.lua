@@ -160,6 +160,7 @@ class MqttClient {
 	 * @param topic The topic to publish to.
 	 * @param payload The message payload.
 	 * @param qos The Quality of Service level. Default is AtLeastOnce.
+	 * @param message_id Pointer to an integer to receive the message ID.
 	 * @param retain Whether the message should be retained by the broker.
 	 * Default is false.
 	 * @return true if the message was successfully published, false if
@@ -170,6 +171,7 @@ class MqttClient {
 	bool publish(const char* topic,
 				 std::string_view payload,
 				 MqttQos qos = MqttQos::AtLeastOnce,
+				 int* message_id = nullptr,
 				 bool retain = false);
 
 	/**

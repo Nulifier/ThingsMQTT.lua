@@ -13,6 +13,7 @@ luaL_Reg library_methods[] = {{"new", lua_thingsmqtt_new},
 							  {NULL, NULL}};
 luaL_Reg thingsmqtt_methods[] = {{"connect", lua_thingsmqtt_connect},
 								 {"telemetry", lua_thingsmqtt_telemetry},
+								 {"set_attribute", lua_thingsmqtt_set_attribute},
 								 {"send", lua_thingsmqtt_send},
 								 {"loop", lua_thingsmqtt_loop},
 								 {"is_connected", lua_thingsmqtt_is_connected},
@@ -146,6 +147,26 @@ int lua_thingsmqtt_telemetry(lua_State* L) {
 	lua_pop(L, 3);
 
 	STACK_END(lua_thingsmqtt_telemetry, 0);
+
+	return 0;
+}
+
+int lua_thingsmqtt_set_attribute(lua_State* L) {
+	STACK_START(lua_thingsmqtt_set_attribute, 3);
+
+	Controller* controller =
+		*static_cast<Controller**>(luaL_checkudata(L, 1, thingsmqtt_meta));
+
+	// Get key
+	const char* key = luaL_checkstring(L, 2);
+
+	// Get value
+	nlohmann::json value = lua_value_to_json(L, 3);
+	controller->setAttribute(key, std::move(value));
+
+	lua_pop(L, 3);
+
+	STACK_END(lua_thingsmqtt_set_attribute, 0);
 
 	return 0;
 }

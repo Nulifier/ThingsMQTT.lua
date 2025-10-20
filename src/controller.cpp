@@ -47,29 +47,63 @@ void Controller::publishTelemetry(const char* key, nlohmann::json&& value) {
 	}
 }
 
+void Controller::setAttribute(const char* key, nlohmann::json&& value) {
+	// Check if the old value is different
+	auto it = m_attribute_data.find(key);
+	if (it == m_attribute_data.end()) {
+		// New attribute key
+		m_attribute_data.emplace(key, std::move(value));
+		m_tainted_attribute_keys.insert(key);
+	} else if (it->second != value) {
+		// Existing attribute key with a new value
+		it->second = std::move(value);
+		m_tainted_attribute_keys.insert(key);
+	} else {
+		// No change in attribute value
+	}
+}
+
 bool Controller::send() {
-	if (m_tainted_telemetry_keys.empty()) {
-		return false;
+	bool data_to_send = false;
+
+	if (!m_tainted_telemetry_keys.empty()) {
+		// Create a JSON object for the telemetry values
+		nlohmann::json telemetry_values;
+		for (const auto& key : m_tainted_telemetry_keys) {
+			telemetry_values[key] = m_telemetry_data[key];
+		}
+
+		// Create the JSON payload
+		nlohmann::json payload;
+		payload["values"] = telemetry_values;
+		payload["ts"] = std::time(nullptr) * 1000;
+
+		// Publish the telemetry data
+		sendTelemetry(std::move(payload));
+
+		// Clear the tainted keys
+		m_tainted_telemetry_keys.clear();
+
+		data_to_send = true;
 	}
 
-	// Create a JSON object for the telemetry values
-	nlohmann::json telemetry_values;
-	for (const auto& key : m_tainted_telemetry_keys) {
-		telemetry_values[key] = m_telemetry_data[key];
+	if (!m_tainted_attribute_keys.empty()) {
+		// Create a JSON object for the attribute values
+		nlohmann::json attribute_values;
+		for (const auto& key : m_tainted_attribute_keys) {
+			attribute_values[key] = m_attribute_data[key];
+		}
+
+		// Publish the attribute data
+		sendAttributes(std::move(attribute_values));
+
+		// Clear the tainted keys
+		m_tainted_attribute_keys.clear();
+
+		data_to_send = true;
 	}
 
-	// Create the JSON payload
-	nlohmann::json payload;
-	payload["values"] = telemetry_values;
-	payload["ts"] = std::time(nullptr) * 1000;
-
-	// Publish the telemetry data
-	sendTelemetry(std::move(payload));
-
-	// Clear the tainted keys
-	m_tainted_telemetry_keys.clear();
-
-	return true;
+	return data_to_send;
 }
 
 void Controller::loop() {
@@ -77,5 +111,43 @@ void Controller::loop() {
 }
 
 void Controller::sendTelemetry(nlohmann::json&& payload) {
-	m_mqtt_client.publish(THINGSMQTT_TELEMETRY_TOPIC, payload.dump());
+	// If we are connected, publish immediately
+	if (m_mqtt_client.is_connected()) {
+		m_mqtt_client.publish(THINGSMQTT_TELEMETRY_TOPIC, payload.dump());
+	} else {
+		// Queue the telemetry data for later sending
+		m_pending_telemetry.push_back(payload.dump());
+	}
+}
+
+void Controller::sendAttributes(nlohmann::json&& payload) {
+	// If we are connected, publish immediately
+	if (m_mqtt_client.is_connected()) {
+		m_mqtt_client.publish(THINGSMQTT_ATTRIBUTES_TOPIC, payload.dump());
+	} else {
+		// All attributes must be sent when connected, so we'll just send the latest then
+	}
+}
+
+void Controller::onMqttConnect(MqttConnectRc rc) {
+	if (rc != MqttConnectRc::Accepted) {
+		// Connection failed
+		return;
+	}
+
+	// Send all attributes
+	if (!m_attribute_data.empty()) {
+		nlohmann::json attribute_values;
+		for (const auto& [key, value] : m_attribute_data) {
+			attribute_values[key] = value;
+		}
+		sendAttributes(std::move(attribute_values));
+	}
+
+	// Send any pending telemetry data
+	while (!m_pending_telemetry.empty()) {
+		const std::string& payload = m_pending_telemetry.front();
+		m_mqtt_client.publish(THINGSMQTT_TELEMETRY_TOPIC, payload);
+		m_pending_telemetry.pop_front();
+	}
 }

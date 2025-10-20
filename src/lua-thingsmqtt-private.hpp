@@ -6,6 +6,7 @@
 static int lua_thingsmqtt_new(lua_State* L);
 static int lua_thingsmqtt_connect(lua_State* L);
 static int lua_thingsmqtt_telemetry(lua_State* L);
+static int lua_thingsmqtt_set_attribute(lua_State* L);
 static int lua_thingsmqtt_send(lua_State* L);
 static int lua_thingsmqtt_loop(lua_State* L);
 static int lua_thingsmqtt_is_connected(lua_State* L);

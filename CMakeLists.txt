@@ -5,6 +5,7 @@ project(thingsmqtt VERSION 1.0.0
 					   LANGUAGES CXX)
 
 set(THINGSMQTT_TELEMETRY_TOPIC "v1/devices/me/telemetry" CACHE STRING "Topic to publish telemetry to")
+set(THINGSMQTT_ATTRIBUTES_TOPIC "v1/devices/me/attributes" CACHE STRING "Topic to publish attributes to")
 option(THINGSMQTT_THREADED "Enable threaded MQTT client" ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")

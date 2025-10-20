@@ -110,8 +110,9 @@ void MqttClient::unsubscribe(const char* topic) {
 bool MqttClient::publish(const char* topic,
 						 std::string_view payload,
 						 MqttQos qos,
+						 int* message_id,
 						 bool retain) {
-	int rc = mosquitto_publish(m_mosq, nullptr, topic,
+	int rc = mosquitto_publish(m_mosq, message_id, topic,
 							   static_cast<int>(payload.size()), payload.data(),
 							   static_cast<int>(qos), retain);
 	if (rc == MOSQ_ERR_SUCCESS) {

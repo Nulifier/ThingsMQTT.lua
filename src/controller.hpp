@@ -42,6 +42,7 @@ class Controller {
 
    protected:
 	virtual void sendTelemetry(nlohmann::json&& payload);
+	virtual void sendAttributes(nlohmann::json&& payload);
 
    private:
 	MqttClientSingleThread m_mqtt_client;
@@ -52,7 +53,7 @@ class Controller {
 	std::unordered_map<std::string, nlohmann::json> m_attribute_data;
 	std::unordered_set<std::string> m_tainted_attribute_keys;
 
-	std::deque<nlohmann::json> m_pending_telemetry;
+	std::deque<std::string> m_pending_telemetry;
 
 	void onMqttConnect(MqttConnectRc rc);
 };
