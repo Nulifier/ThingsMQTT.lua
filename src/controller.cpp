@@ -110,6 +110,16 @@ void Controller::loop() {
 	m_mqtt_client.loop();
 }
 
+size_t Controller::addRpcHandler(RpcHandler handler) {
+	static size_t next_id = 1;
+	m_rpc_handlers[next_id] = std::move(handler);
+	return next_id++;
+}
+
+bool Controller::removeRpcHandler(size_t handler_id) {
+	return m_rpc_handlers.erase(handler_id) > 0;
+}
+
 void Controller::sendTelemetry(nlohmann::json&& payload) {
 	// If we are connected, publish immediately
 	if (m_mqtt_client.is_connected()) {
@@ -125,7 +135,8 @@ void Controller::sendAttributes(nlohmann::json&& payload) {
 	if (m_mqtt_client.is_connected()) {
 		m_mqtt_client.publish(THINGSMQTT_ATTRIBUTES_TOPIC, payload.dump());
 	} else {
-		// All attributes must be sent when connected, so we'll just send the latest then
+		// All attributes must be sent when connected, so we'll just send the
+		// latest then
 	}
 }
 

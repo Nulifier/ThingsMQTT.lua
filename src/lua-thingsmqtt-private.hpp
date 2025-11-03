@@ -10,9 +10,13 @@ static int lua_thingsmqtt_set_attribute(lua_State* L);
 static int lua_thingsmqtt_send(lua_State* L);
 static int lua_thingsmqtt_loop(lua_State* L);
 static int lua_thingsmqtt_is_connected(lua_State* L);
+static int lua_thingsmqtt_add_rpc_handler(lua_State* L);
+static int lua_thingsmqtt_remove_rpc_handler(lua_State* L);
 
 static int lua_thingsmqtt_json_stringify(lua_State* L);
 static int lua_thingsmqtt_json_parse(lua_State* L);
+
+static void lua_push_error_func(lua_State* L);
 
 #ifdef THINGSMQTT_STACK_CHECK
 #define STACK_START(fn_name, nargs)                             \

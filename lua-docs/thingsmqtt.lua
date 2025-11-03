@@ -48,8 +48,16 @@ function ThingsMqtt:add_attribute_handler() end
 
 function ThingsMqtt:remove_attribute_handler() end
 
-function ThingsMqtt:add_rpc_handler() end
+--- @alias ThingsMqttRpcHandler fun(method: string, params: table): any
 
-function ThingsMqtt:remove_rpc_handler() end
+--- Adds a remote procedure call (RPC) handler.
+--- @param handler ThingsMqttRpcHandler The RPC handler function.
+--- @return integer The ID of the added RPC handler.
+function ThingsMqtt:add_rpc_handler(handler) end
+
+--- Removes a remote procedure call (RPC) handler.
+--- @param handler_id integer The ID of the RPC handler to remove.
+--- @return boolean True if the handler was removed, false otherwise.
+function ThingsMqtt:remove_rpc_handler(handler_id) end
 
 return ThingsMqtt

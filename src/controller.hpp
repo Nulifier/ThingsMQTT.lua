@@ -21,6 +21,10 @@ struct ControllerConfig {
 
 class Controller {
    public:
+	typedef std::function<nlohmann::json(const std::string& method,
+										 const nlohmann::json& params)>
+		RpcHandler;
+
 	void connect(const ControllerConfig& config);
 	void disconnect();
 
@@ -40,6 +44,9 @@ class Controller {
 
 	bool isConnected() const { return m_mqtt_client.is_connected(); }
 
+	size_t addRpcHandler(RpcHandler handler);
+	bool removeRpcHandler(size_t handler_id);
+
    protected:
 	virtual void sendTelemetry(nlohmann::json&& payload);
 	virtual void sendAttributes(nlohmann::json&& payload);
@@ -54,6 +61,8 @@ class Controller {
 	std::unordered_set<std::string> m_tainted_attribute_keys;
 
 	std::deque<std::string> m_pending_telemetry;
+
+	std::unordered_map<size_t, RpcHandler> m_rpc_handlers;
 
 	void onMqttConnect(MqttConnectRc rc);
 };
