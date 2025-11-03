@@ -186,9 +186,6 @@ class MqttClient {
 	 */
 	virtual bool is_connected() const = 0;
 
-   protected:
-	// Callback setters
-
 	inline void set_connect_callback(
 		ConnectCallback callback = ConnectCallback{}) {
 		m_connect_callback = std::move(callback);

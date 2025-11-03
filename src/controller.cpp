@@ -17,6 +17,15 @@ void Controller::connect(const ControllerConfig& config) {
 		cfg.keepalive = 60;
 	}
 
+	// Set MQTT Callbacks
+	m_mqtt_client.set_connect_callback(
+		[this](MqttConnectRc rc) { this->onMqttConnect(rc); });
+	m_mqtt_client.set_message_callback([this](int message_id, const char* topic,
+											  std::string_view payload,
+											  MqttQos qos, bool retain) {
+		this->onMqttMessage(message_id, topic, payload, qos, retain);
+	});
+
 	m_mqtt_client.configure(cfg.client_id, cfg.username, cfg.password,
 							&cfg.ssl_config);
 	if (cfg.bind_address != nullptr) {
@@ -146,6 +155,9 @@ void Controller::onMqttConnect(MqttConnectRc rc) {
 		return;
 	}
 
+	// Subscribe to topics
+	m_mqtt_client.subscribe(THINGSMQTT_RPC_TOPIC "/+", MqttQos::ExactlyOnce);
+
 	// Send all attributes
 	if (!m_attribute_data.empty()) {
 		nlohmann::json attribute_values;
@@ -160,5 +172,24 @@ void Controller::onMqttConnect(MqttConnectRc rc) {
 		const std::string& payload = m_pending_telemetry.front();
 		m_mqtt_client.publish(THINGSMQTT_TELEMETRY_TOPIC, payload);
 		m_pending_telemetry.pop_front();
+	}
+}
+
+void Controller::onMqttMessage(int message_id,
+							   const char* topic,
+							   std::string_view payload,
+							   MqttQos qos,
+							   bool retain) {
+	// If the topic begins with the RPC topic (Minus the "+"), handle it
+	if (strcmp(topic, THINGSMQTT_RPC_TOPIC) == 0) {
+		// Payload is a JSON object
+		nlohmann::json payload_json = nlohmann::json::parse(payload);
+
+		const std::string& method = payload_json["method"];
+		nlohmann::json params = payload_json["params"];
+
+		for (const auto& [id, handler] : m_rpc_handlers) {
+			handler(method, params);
+		}
 	}
 }

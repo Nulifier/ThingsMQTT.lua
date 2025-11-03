@@ -65,4 +65,9 @@ class Controller {
 	std::unordered_map<size_t, RpcHandler> m_rpc_handlers;
 
 	void onMqttConnect(MqttConnectRc rc);
+	void onMqttMessage(int message_id,
+					   const char* topic,
+					   std::string_view payload,
+					   MqttQos qos,
+					   bool retain);
 };

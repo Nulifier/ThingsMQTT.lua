@@ -51,7 +51,18 @@
 		"stop_token": "cpp",
 		"streambuf": "cpp",
 		"thread": "cpp",
-		"sstream": "cpp"
+		"sstream": "cpp",
+		"any": "cpp",
+		"codecvt": "cpp",
+		"condition_variable": "cpp",
+		"cstring": "cpp",
+		"forward_list": "cpp",
+		"map": "cpp",
+		"unordered_set": "cpp",
+		"iomanip": "cpp",
+		"mutex": "cpp",
+		"ranges": "cpp",
+		"valarray": "cpp"
 	},
 	"Lua.workspace.library": [
 		"${workspaceFolder}/lua-docs"
